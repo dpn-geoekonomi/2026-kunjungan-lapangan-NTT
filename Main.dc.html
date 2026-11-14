@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KKDN NTT 2026 — Portal Kunjungan</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="./vendor/leaflet.css">
+<script src="./vendor/leaflet.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <style>
+    body{margin:0}
+    :root{
+      --color-bg:#f3f2f2;--color-surface:#eae9e9;--color-text:#201e1d;
+      --color-accent:#ec3013;--color-divider:color-mix(in srgb,#201e1d 40%,transparent);
+      --color-neutral-100:#f8f4f4;--color-neutral-200:#eae7e7;--color-neutral-300:#d7d3d3;
+      --color-neutral-700:#605d5d;--color-neutral-800:#444141;
+      --color-accent-100:#fff2ef;--color-accent-200:#ffe0d9;--color-accent-300:#ffc4b8;
+      --color-accent-400:#ff9783;--color-accent-600:#dd2b0f;--color-accent-700:#ae1800;
+      --color-orange:#f5860b;
+      --font-heading:"Archivo",system-ui,sans-serif;--font-body:"Archivo",system-ui,sans-serif;
+    }
+    a{color:#ae1800}
+    a:hover{color:#ec3013}
+    button{font:inherit;color:inherit}
+    :focus-visible{outline:2px solid #ec3013;outline-offset:2px}
+    .kk-pin{background:#201e1d;color:#f3f2f2;border:2px solid #f3f2f2;font:800 12px/20px Archivo,system-ui,sans-serif;text-align:center;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+    .leaflet-container{font-family:Archivo,system-ui,sans-serif}
+    .leaflet-popup-content-wrapper,.leaflet-popup-tip{border-radius:0}
+    .kk-trace{stroke-dasharray:1000;stroke-dashoffset:0}
+    @keyframes kkDraw{0%{stroke-dashoffset:1000}70%{stroke-dashoffset:0}100%{stroke-dashoffset:0}}
+    @keyframes kkRing{0%{transform:scale(.6);opacity:.95}100%{transform:scale(3.3);opacity:0}}
+    @keyframes kkBeat{0%,100%{transform:scale(1)}12%{transform:scale(1.25)}24%{transform:scale(.95)}36%{transform:scale(1.12)}50%{transform:scale(1)}}
+    .kk-ring{transform-box:fill-box;transform-origin:center;opacity:0}
+    .kk-star{transform-box:fill-box;transform-origin:center}
+    @media (prefers-reduced-motion:no-preference){
+      .kk-trace{animation:kkDraw 6s cubic-bezier(.4,0,.2,1) infinite}
+      .kk-ring{animation:kkRing 2.4s ease-out infinite}
+      .kk-r2{animation-delay:.8s}
+      .kk-r3{animation-delay:1.6s}
+      .kk-star{animation:kkBeat 1.2s ease-in-out infinite}
+    }
+    @media (max-width:600px){.kk-pulse{flex-wrap:wrap}.kk-pulse > svg{flex-basis:100% !important}}
+    .kk-g2{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:24px}
+    .kk-kpi{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .kk-kab{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+    .kk-main{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:24px}
+    .kk-sas{columns:2;column-gap:32px}
+    .kk-sas > *{break-inside:avoid}
+    html{-webkit-text-size-adjust:100%}
+    img,svg{max-width:100%}
+    @media (max-width:600px){
+      .kk-wrap{padding:20px 16px 0 !important}
+      header{padding:8px 16px !important}
+      .kk-mapbox{min-height:320px !important}
+      .kk-h1{font-size:24px !important}
+      .kk-kpi > div{padding:10px !important}
+      .kk-stats{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+    @media (max-width:900px){
+      .kk-g2,.kk-main{grid-template-columns:minmax(0,1fr)}
+      .kk-kab{grid-template-columns:minmax(0,1fr)}
+      .kk-side{border-left:none !important;padding-left:0 !important;border-top:2px solid var(--color-divider);padding-top:20px}
+      .kk-sas{columns:1}
+      .kk-h1{font-size:26px !important}
+    }
+  </style>
+</helmet>
+
+<div style="background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);min-height:100vh;padding-bottom:48px">
+
+  <header style="display:flex;align-items:center;flex-wrap:wrap;gap:6px 20px;min-height:56px;padding:8px 24px;box-sizing:border-box;border-bottom:2px solid var(--color-divider)">
+    <div style="font-family:var(--font-heading);font-weight:800;font-size:14px;letter-spacing:.02em;white-space:nowrap">KKDN NTT 2026</div>
+    <nav aria-label="Bagian halaman" style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;font-weight:700">
+      <a href="#insight">Insight gempa</a>
+      <a href="#pointer">Pointer diskusi</a>
+      <a href="#rundown">Rencana kegiatan</a>
+    </nav>
+    <div style="margin-left:auto;font-size:12px;color:var(--color-neutral-700);letter-spacing:.02em;white-space:nowrap">16–20 NOV / LABUAN BAJO · MANGGARAI</div>
+  </header>
+
+  <div class="kk-wrap" style="max-width:1200px;margin:0 auto;padding:28px 24px 0;box-sizing:border-box">
+
+    <section aria-labelledby="judul" style="margin-bottom:24px">
+      <div style="display:inline-flex;align-items:baseline;gap:10px;flex-wrap:wrap;background:var(--color-text);color:var(--color-bg);padding:8px 14px;margin-bottom:14px">
+        <span style="font-family:var(--font-heading);font-weight:800;font-size:18px;letter-spacing:.02em">{{ dayBannerTitle }}</span>
+        <span style="font-size:12px;letter-spacing:.04em;opacity:.85">{{ dayBannerSub }}</span>
+      </div>
+      <div style="font-size:11px;letter-spacing:.08em;color:var(--color-accent-700);font-weight:700;margin-bottom:6px">KUNJUNGAN KERJA DALAM NEGERI · PROVINSI NUSA TENGGARA TIMUR</div>
+      <h1 id="judul" class="kk-h1" style="font-family:var(--font-heading);font-size:34px;line-height:1.12;margin:0 0 10px;font-weight:800;max-width:900px">Flores Barat Pascagempa: Konektivitas, Pemulihan &amp; Pariwisata</h1>
+      <p style="margin:0;font-size:15px;line-height:1.5;color:var(--color-neutral-800);max-width:820px">Labuan Bajo, Golo Mori, Reok, Ruteng dan Pulau Rinca, 16–20 November 2026. Kunjungan berlangsung pada hari ke-93 sampai ke-97 setelah gempa M7,7 Laut Flores, saat Flores masih di fase transisi darurat ke pemulihan.</p>
+      <div class="kk-pulse" role="img" aria-label="Animasi denyut seismogram dan episenter gempa M7,7 Laut Flores, 15 Agustus 2026" style="display:flex;align-items:center;gap:16px;margin-top:18px;padding:10px 0;border-top:2px solid var(--color-divider);border-bottom:2px solid var(--color-divider)">
+        <div style="flex:0 0 auto;display:flex;align-items:center;gap:10px">
+          <svg viewBox="-50 -50 100 100" width="76" height="76" aria-hidden="true" style="display:block;overflow:visible">
+            <circle class="kk-ring" r="14" fill="none" stroke="#ec3013" stroke-width="2.5"></circle>
+            <circle class="kk-ring kk-r2" r="14" fill="none" stroke="#ec3013" stroke-width="2.5"></circle>
+            <circle class="kk-ring kk-r3" r="14" fill="none" stroke="#ec3013" stroke-width="2.5"></circle>
+            <polygon class="kk-star" points="0,-15 3.5,-5 14,-4.6 5.7,1.9 8.8,12.1 0,6.2 -8.8,12.1 -5.7,1.9 -14,-4.6 -3.5,-5" fill="#ec3013" stroke="#201e1d" stroke-width="1.5"></polygon>
+          </svg>
+          <div style="line-height:1.25">
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:20px;color:#ae1800">M7,7</div>
+            <div style="font-size:10.5px;letter-spacing:.04em;color:var(--color-neutral-700)">EPISENTER LAUT FLORES<br>15 AGU 2026 · 04.58 WIB</div>
+          </div>
+        </div>
+        <svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true" style="flex:1 1 auto;min-width:0;height:84px;display:block">
+          <line x1="0" y1="58" x2="1000" y2="58" stroke="#d7d3d3" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+          <path d="M0,57.7 L4,57.4 L8,58.2 L12,57.3 L16,58.1 L20,58.0 L26,54.0 L32,58.0 L36,58.0 L39,64.0 L43,28.0 L47,72.0 L51,58.0 L62,51.0 L72,58.0 L100,57.8 L104,57.3 L108,58.0 L112,57.3 L116,57.9 L120,58.0 L126,54.0 L132,58.0 L136,58.0 L139,64.0 L143,28.0 L147,72.0 L151,58.0 L162,51.0 L172,58.0 L200,57.3 L204,57.3 L208,57.9 L212,58.5 L216,57.4 L220,58.0 L226,54.0 L232,58.0 L236,58.0 L239,64.0 L243,28.0 L247,72.0 L251,58.0 L262,51.0 L272,58.0 L300,58.0 L303,52.4 L306,84.1 L309,23.9 L312,91.1 L315,36.4 L318,68.3 L321,60.4 L324,44.1 L327,76.2 L330,26.8 L333,83.6 L336,38.6 L339,68.5 L342,56.2 L345,51.1 L348,73.5 L351,37.0 L354,76.5 L357,36.5 L360,67.4 L363,56.3 L366,52.0 L369,69.2 L372,42.0 L375,75.1 L378,42.0 L381,69.4 L384,55.9 L387,53.0 L390,67.7 L393,45.3 L396,73.6 L399,47.0 L402,65.3 L405,57.0 L408,54.1 L411,64.5 L414,49.1 L417,67.6 L420,48.2 L423,63.3 L426,55.6 L429,57.6 L432,63.3 L435,51.6 L438,66.0 L441,50.7 L444,64.0 L447,55.5 L450,57.2 L453,62.6 L456,53.3 L459,64.7 L462,52.0 L465,61.8 L468,56.0 L471,58.1 L474,61.7 L477,54.2 L480,62.9 L483,52.7 L486,62.3 L489,55.0 L492,58.0 L495,59.4 L498,54.0 L501,61.5 L504,54.3 L507,60.7 L510,55.8 L513,58.1 L516,59.8 L519,54.9 L522,61.2 L525,54.8 L528,61.1 L531,56.7 L534,58.7 L537,58.7 L540,56.0 L543,60.4 L546,55.8 L549,60.6 L552,56.3 L555,58.1 L558,58.4 L561,56.3 L564,59.9 L567,56.0 L570,59.6 L573,56.5 L576,58.3 L579,58.3 L582,57.0 L585,59.8 L588,56.5 L591,59.4 L594,57.1 L597,58.5 L600,58.0 L603,57.4 L606,59.3 L609,56.9 L612,59.3 L615,57.1 L618,58.3 L630,57.4 L636,58.2 L642,57.4 L648,57.4 L654,57.6 L660,58.0 L666,54.0 L672,58.0 L676,58.0 L679,64.0 L683,28.0 L687,72.0 L691,58.0 L702,51.0 L712,58.0 L730,57.5 L736,57.8 L742,57.4 L748,57.3 L754,57.5 L760,58.0 L766,54.0 L772,58.0 L776,58.0 L779,64.0 L783,28.0 L787,72.0 L791,58.0 L802,51.0 L812,58.0 L830,57.4 L836,57.8 L842,57.3 L848,58.5 L854,58.2 L860,58.0 L866,54.0 L872,58.0 L876,58.0 L879,64.0 L883,28.0 L887,72.0 L891,58.0 L902,51.0 L912,58.0 L960,58.0 L1000,58.0" fill="none" stroke="#d7d3d3" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path>
+          <path class="kk-trace" pathLength="1000" d="M0,57.7 L4,57.4 L8,58.2 L12,57.3 L16,58.1 L20,58.0 L26,54.0 L32,58.0 L36,58.0 L39,64.0 L43,28.0 L47,72.0 L51,58.0 L62,51.0 L72,58.0 L100,57.8 L104,57.3 L108,58.0 L112,57.3 L116,57.9 L120,58.0 L126,54.0 L132,58.0 L136,58.0 L139,64.0 L143,28.0 L147,72.0 L151,58.0 L162,51.0 L172,58.0 L200,57.3 L204,57.3 L208,57.9 L212,58.5 L216,57.4 L220,58.0 L226,54.0 L232,58.0 L236,58.0 L239,64.0 L243,28.0 L247,72.0 L251,58.0 L262,51.0 L272,58.0 L300,58.0 L303,52.4 L306,84.1 L309,23.9 L312,91.1 L315,36.4 L318,68.3 L321,60.4 L324,44.1 L327,76.2 L330,26.8 L333,83.6 L336,38.6 L339,68.5 L342,56.2 L345,51.1 L348,73.5 L351,37.0 L354,76.5 L357,36.5 L360,67.4 L363,56.3 L366,52.0 L369,69.2 L372,42.0 L375,75.1 L378,42.0 L381,69.4 L384,55.9 L387,53.0 L390,67.7 L393,45.3 L396,73.6 L399,47.0 L402,65.3 L405,57.0 L408,54.1 L411,64.5 L414,49.1 L417,67.6 L420,48.2 L423,63.3 L426,55.6 L429,57.6 L432,63.3 L435,51.6 L438,66.0 L441,50.7 L444,64.0 L447,55.5 L450,57.2 L453,62.6 L456,53.3 L459,64.7 L462,52.0 L465,61.8 L468,56.0 L471,58.1 L474,61.7 L477,54.2 L480,62.9 L483,52.7 L486,62.3 L489,55.0 L492,58.0 L495,59.4 L498,54.0 L501,61.5 L504,54.3 L507,60.7 L510,55.8 L513,58.1 L516,59.8 L519,54.9 L522,61.2 L525,54.8 L528,61.1 L531,56.7 L534,58.7 L537,58.7 L540,56.0 L543,60.4 L546,55.8 L549,60.6 L552,56.3 L555,58.1 L558,58.4 L561,56.3 L564,59.9 L567,56.0 L570,59.6 L573,56.5 L576,58.3 L579,58.3 L582,57.0 L585,59.8 L588,56.5 L591,59.4 L594,57.1 L597,58.5 L600,58.0 L603,57.4 L606,59.3 L609,56.9 L612,59.3 L615,57.1 L618,58.3 L630,57.4 L636,58.2 L642,57.4 L648,57.4 L654,57.6 L660,58.0 L666,54.0 L672,58.0 L676,58.0 L679,64.0 L683,28.0 L687,72.0 L691,58.0 L702,51.0 L712,58.0 L730,57.5 L736,57.8 L742,57.4 L748,57.3 L754,57.5 L760,58.0 L766,54.0 L772,58.0 L776,58.0 L779,64.0 L783,28.0 L787,72.0 L791,58.0 L802,51.0 L812,58.0 L830,57.4 L836,57.8 L842,57.3 L848,58.5 L854,58.2 L860,58.0 L866,54.0 L872,58.0 L876,58.0 L879,64.0 L883,28.0 L887,72.0 L891,58.0 L902,51.0 L912,58.0 L960,58.0 L1000,58.0" fill="none" stroke="#ec3013" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></path>
+          <text x="300" y="12" font-size="11" font-weight="800" fill="#ae1800" font-family="Archivo, system-ui, sans-serif">GUNCANGAN</text>
+          <text x="660" y="12" font-size="11" font-weight="800" fill="#605d5d" font-family="Archivo, system-ui, sans-serif">PEMULIHAN</text>
+        </svg>
+      </div>
+      <div class="kk-stats" style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap">
+        <div style="border:2px solid var(--color-text);padding:8px 14px;min-width:96px">
+          <div style="font-size:20px;font-weight:800;font-family:var(--font-heading)">9</div>
+          <div style="font-size:10px;color:var(--color-neutral-700);letter-spacing:.04em">SASARAN KUNJUNGAN</div>
+        </div>
+        <div style="border:2px solid var(--color-text);padding:8px 14px;min-width:96px">
+          <div style="font-size:20px;font-weight:800;font-family:var(--font-heading)">5</div>
+          <div style="font-size:10px;color:var(--color-neutral-700);letter-spacing:.04em">HARI KEGIATAN</div>
+        </div>
+        <div style="border:2px solid var(--color-text);padding:8px 14px;min-width:96px">
+          <div style="font-size:20px;font-weight:800;font-family:var(--font-heading)">2</div>
+          <div style="font-size:10px;color:var(--color-neutral-700);letter-spacing:.04em">KABUPATEN TERDAMPAK DILALUI</div>
+        </div>
+        <div style="border:2px solid var(--color-accent);background:var(--color-accent-100);padding:8px 14px;min-width:96px">
+          <div style="font-size:20px;font-weight:800;font-family:var(--font-heading);color:var(--color-accent-700)">{{ countdownValue }}</div>
+          <div style="font-size:10px;color:var(--color-accent-700);letter-spacing:.04em">{{ countdownLabel }}</div>
+        </div>
+      </div>
+    </section>
+
+    <div style="height:2px;background:var(--color-divider);margin-bottom:24px"></div>
+
+    <section id="insight" aria-labelledby="insight-h" style="margin-bottom:28px">
+      <div style="font-size:11px;letter-spacing:.08em;color:var(--color-accent-700);font-weight:700;margin-bottom:4px">KONTEKS KUNJUNGAN · DATA S.D. 12 NOVEMBER 2026</div>
+      <h2 id="insight-h" style="font-family:var(--font-heading);font-size:22px;margin:0 0 8px;font-weight:800">Insight Gempa Flores M7,7</h2>
+      <p style="margin:0 0 18px;font-size:14px;line-height:1.55;color:var(--color-neutral-800);max-width:860px">Gempa terjadi 15 Agustus 2026 pukul 04.58 WIB, kedalaman 15 km di laut ±30 km timur laut Nagekeo, bersumber dari sesar naik busur belakang Flores. Rute KKDN melintasi dua dari tujuh kabupaten terdampak: Manggarai Barat (dampak berat) dan Manggarai (dampak sangat berat), termasuk pesisir Reok yang mencatat tsunami tertinggi.</p>
+
+      <div class="kk-g2" style="align-items: stretch">
+        <div style="display: flex; flex-direction: column">
+          <div ref="{{ mapRef }}" class="kk-mapbox" role="region" aria-label="Peta OpenStreetMap lokasi kunjungan KKDN NTT; gunakan tombol + dan − untuk zoom" style="flex:1 1 auto;min-height:440px;border:2px solid var(--color-divider);background:#eae7e7"></div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px 16px;font-size:11.5px;color:var(--color-neutral-800);margin-top:10px">
+            <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:14px;height:14px;background:#201e1d;display:inline-block"></span>Lokasi kunjungan (nomor = urutan sasaran, klik untuk detail)</span>
+          </div>
+          <p style="font-size:11px;line-height:1.45;color:var(--color-neutral-700);margin:6px 0 0">Peta dasar © kontributor OpenStreetMap. Zoom dengan tombol + / − atau scroll setelah mengklik peta; di ponsel cubit dengan dua jari. Posisi titik indikatif.</p>
+        </div>
+
+        <div>
+          <div class="kk-kpi">
+            <div style="border:2px solid var(--color-divider);padding:12px">
+              <div style="font-size:22px;font-weight:800;font-family:var(--font-heading);color:var(--color-accent-700)">M7,7</div>
+              <div style="font-size:11px;color:var(--color-neutral-700);margin-top:4px;line-height:1.35">Kedalaman 15 km, sesar naik busur belakang Flores</div>
+            </div>
+            <div style="border:2px solid var(--color-divider);padding:12px">
+              <div style="font-size:22px;font-weight:800;font-family:var(--font-heading);color:var(--color-accent-700)">156 jiwa</div>
+              <div style="font-size:11px;color:var(--color-neutral-700);margin-top:4px;line-height:1.35">48 langsung, 108 tidak langsung (BNPB, 28 Sep)</div>
+            </div>
+            <div style="border:2px solid var(--color-divider);padding:12px">
+              <div style="font-size:22px;font-weight:800;font-family:var(--font-heading);color:var(--color-accent-700)">51.733</div>
+              <div style="font-size:11px;color:var(--color-neutral-700);margin-top:4px;line-height:1.35">Rumah rusak terverifikasi (21 Okt), dari ±99 ribu laporan awal</div>
+            </div>
+            <div style="border:2px solid var(--color-divider);padding:12px">
+              <div style="font-size:22px;font-weight:800;font-family:var(--font-heading);color:var(--color-accent-700)">22.383</div>
+              <div style="font-size:11px;color:var(--color-neutral-700);margin-top:4px;line-height:1.35">Pengungsi per 30 Sep, turun dari puncak 185.131</div>
+            </div>
+            <div style="border:2px solid var(--color-divider);padding:12px">
+              <div style="font-size:22px;font-weight:800;font-family:var(--font-heading);color:var(--color-accent-700)">Rp2,59 T</div>
+              <div style="font-size:11px;color:var(--color-neutral-700);margin-top:4px;line-height:1.35">Estimasi kebutuhan rehab-rekon (BPBD/Bapperida NTT)</div>
+            </div>
+            <div style="border:2px solid var(--color-divider);padding:12px">
+              <div style="font-size:22px;font-weight:800;font-family:var(--font-heading);color:var(--color-accent-700)">3,3%</div>
+              <div style="font-size:11px;color:var(--color-neutral-700);margin-top:4px;line-height:1.35">Huntara selesai dari target BNPB (39 dari 1.187, 28 Sep)</div>
+            </div>
+          </div>
+
+          <div style="border:2px solid var(--color-accent);background:var(--color-accent-100);padding:14px;margin-top:14px">
+            <div style="font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--color-accent-700);margin-bottom:6px">POSISI SAAT KUNJUNGAN</div>
+            <p style="margin:0;font-size:13px;line-height:1.5">Flores berada di fase transisi darurat ke pemulihan sejak 27 September. Batas 90 hari penyusunan R3P jatuh sekitar 13 November (hitungan indikatif), tiga hari sebelum kunjungan, dan penetapannya belum terpublikasi. Tanpa R3P yang ditetapkan, Dana Bersama dan hibah rehab-rekon belum bisa diakses.</p>
+          </div>
+
+          <a href="Laporan-Gempa-Flores.dc.html" style="display:inline-block;font-size:12.5px;font-weight:700;text-decoration:underline;margin-top:14px">Baca Laporan Lengkap →</a>
+        </div>
+      </div>
+
+      <h3 style="font-family:var(--font-heading);font-size:14px;margin:28px 0 12px;font-weight:800;letter-spacing:.02em">KABUPATEN TERDAMPAK YANG DIKUNJUNGI SAAT KUNJUNGAN LAPANGAN</h3>
+      <div class="kk-kab">
+        <div style="border:2px solid var(--color-text);align-self:start">
+          <button type="button" onClick="{{ kab.mabar.toggle }}" aria-expanded="{{ kab.mabar.open }}" style="display:flex;width:100%;align-items:center;gap:10px;background:transparent;border:0;padding:14px 16px;cursor:pointer;text-align:left;min-height:44px">
+            <span style="flex:1;font-family:var(--font-heading);font-weight:800;font-size:16px">Manggarai Barat</span>
+            <span style="font-size:10.5px;font-weight:800;letter-spacing:.04em;background:#ff9783;color:#201e1d;padding:3px 7px">DAMPAK BERAT</span>
+            <span aria-hidden="true" style="font-size:18px;font-weight:800;color:var(--color-accent-700);width:16px;text-align:center">{{ kab.mabar.icon }}</span>
+          </button>
+          <sc-if value="{{ kab.mabar.open }}" hint-placeholder-val="{{ false }}">
+          <ul style="margin:0 0 16px;padding:0 16px 0 32px;font-size:12.5px;line-height:1.5;display:flex;flex-direction:column;gap:6px">
+            <li>6.657 rumah terverifikasi Pemkab (488 RB, 1.589 RS, 4.580 RR, 25 Sep).</li>
+            <li>Dua angka rusak berat beredar: 357 (9 Sep) dan 488 (25 Sep).</li>
+            <li>Bandara Komodo dan Pelabuhan Marina normal dalam 1–2 hari; Hotel Jayakarta rusak.</li>
+            <li>Genangan tsunami hanya 3–7 m karena tertahan tanggul pantai.</li>
+          </ul>
+          </sc-if>
+        </div>
+        <div style="border:2px solid var(--color-text);align-self:start">
+          <button type="button" onClick="{{ kab.mgr.toggle }}" aria-expanded="{{ kab.mgr.open }}" style="display:flex;width:100%;align-items:center;gap:10px;background:transparent;border:0;padding:14px 16px;cursor:pointer;text-align:left;min-height:44px">
+            <span style="flex:1;font-family:var(--font-heading);font-weight:800;font-size:16px">Manggarai</span>
+            <span style="font-size:10.5px;font-weight:800;letter-spacing:.04em;background:#dd2b0f;color:#ffffff;padding:3px 7px">SANGAT BERAT</span>
+            <span aria-hidden="true" style="font-size:18px;font-weight:800;color:var(--color-accent-700);width:16px;text-align:center">{{ kab.mgr.icon }}</span>
+          </button>
+          <sc-if value="{{ kab.mgr.open }}" hint-placeholder-val="{{ false }}">
+          <ul style="margin:0 0 16px;padding:0 16px 0 32px;font-size:12.5px;line-height:1.5;display:flex;flex-direction:column;gap:6px">
+            <li>34.622 rumah terdampak (Pemkab, Okt): 2.220 RB, 6.129 RS.</li>
+            <li>Tsunami tertinggi di pesisir Reok: run-up hingga 2,92 m (Salama), genangan 20–153 m.</li>
+            <li>Huntara tahap 1: 109 dari 385 unit dalam proses (28 Sep).</li>
+            <li>Masa transisi pemulihan ditetapkan 90 hari.</li>
+          </ul>
+          </sc-if>
+        </div>
+        <div style="border:2px solid var(--color-divider);align-self:start">
+          <button type="button" onClick="{{ kab.ngk.toggle }}" aria-expanded="{{ kab.ngk.open }}" style="display:flex;width:100%;align-items:center;gap:10px;background:transparent;border:0;padding:14px 16px;cursor:pointer;text-align:left;min-height:44px">
+            <span style="flex:1;font-family:var(--font-heading);font-weight:800;font-size:16px">Nagekeo</span>
+            <span style="font-size:10.5px;font-weight:800;letter-spacing:.04em;background:#ff9783;color:#201e1d;padding:3px 7px">DAMPAK BERAT</span>
+            <span aria-hidden="true" style="font-size:18px;font-weight:800;color:var(--color-accent-700);width:16px;text-align:center">{{ kab.ngk.icon }}</span>
+          </button>
+          <sc-if value="{{ kab.ngk.open }}" hint-placeholder-val="{{ false }}">
+          <ul style="margin:0 0 16px;padding:0 16px 0 32px;font-size:12.5px;line-height:1.5;display:flex;flex-direction:column;gap:6px">
+            <li>Daratan terdekat dengan episenter (±30 km); guncangan VI–VII MMI.</li>
+            <li>Stasiun pasut terdekat (Marapokot, ±13 km) tidak tercantum dalam rekaman BMKG.</li>
+            <li>RSUD Aeramo dan rumah ibadah direhabilitasi Kementerian PU.</li>
+          </ul>
+          </sc-if>
+        </div>
+      </div>
+    </section>
+
+    <div style="height:2px;background:var(--color-divider);margin-bottom:24px"></div>
+
+    <div class="kk-main">
+      <div>
+        <section id="pointer" aria-labelledby="pointer-h">
+          <h2 id="pointer-h" style="font-family:var(--font-heading);font-size:18px;margin:0 0 4px;font-weight:800">Pointer Diskusi per Sasaran</h2>
+          <p style="font-size:12px;color:var(--color-neutral-700);margin:0 0 14px;line-height:1.45">Fakta dari laporan gempa yang relevan untuk tiap audiensi, ditambah pertanyaan kunci. Pilih tema untuk menyaring.</p>
+
+          <div role="group" aria-label="Tema sasaran" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+            <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+              <button type="button" onClick="{{ t.pick }}" aria-pressed="{{ t.pressed }}" style="{{ t.style }}">
+                <span style="display:block;font-size:10px;letter-spacing:.06em;opacity:.8">{{ t.count }}</span>
+                {{ t.label }}
+              </button>
+            </sc-for>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <sc-for list="{{ activeSasaran }}" as="s" hint-placeholder-count="3">
+              <article style="border:2px solid var(--color-text)">
+                <button type="button" onClick="{{ s.toggle }}" aria-expanded="{{ s.open }}" style="display:flex;width:100%;gap:12px;align-items:flex-start;background:transparent;border:0;padding:16px;cursor:pointer;text-align:left;min-height:44px">
+                  <div style="flex:0 0 32px;height:32px;background:var(--color-text);color:var(--color-bg);font-family:var(--font-heading);font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center">{{ s.no }}</div>
+                  <div style="flex:1;min-width:0">
+                    <h3 style="font-family:var(--font-heading);font-size:15.5px;margin:0;font-weight:800;line-height:1.25">{{ s.nama }}</h3>
+                    <div style="font-size:11.5px;color:var(--color-neutral-700);margin-top:3px;line-height:1.4">{{ s.meta }}</div>
+                    <div style="margin-top:6px"><span style="{{ s.tagStyle }}">{{ s.dampak }}</span></div>
+                  </div>
+                  <span aria-hidden="true" style="flex:0 0 16px;font-size:18px;font-weight:800;line-height:1.2;color:var(--color-accent-700);text-align:center">{{ s.icon }}</span>
+                </button>
+                <sc-if value="{{ s.hasProfil }}" hint-placeholder-val="{{ true }}">
+                  <a href="{{ s.profil }}" style="display:inline-flex;align-items:center;min-height:32px;margin:-8px 16px 12px 60px;font-size:12px;font-weight:800;letter-spacing:.02em">{{ s.profilLabel }}</a>
+                </sc-if>
+                <sc-if value="{{ s.open }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:0 16px 16px">
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <sc-for list="{{ s.pointers }}" as="p" hint-placeholder-count="2">
+                    <div style="font-size:13px;line-height:1.5;padding-left:12px;border-left:2px solid var(--color-accent)"><span style="font-weight:700">{{ p.lead }}</span> {{ p.rest }}</div>
+                  </sc-for>
+                </div>
+                <div style="margin-top:12px;background:var(--color-neutral-200);padding:10px 12px;font-size:12.5px;line-height:1.5">
+                  <span style="font-weight:800;font-size:10.5px;letter-spacing:.06em;color:var(--color-accent-700);display:block;margin-bottom:2px">PERTANYAAN KUNCI</span>
+                  {{ s.tanya }}
+                </div>
+                </div>
+                </sc-if>
+              </article>
+            </sc-for>
+          </div>
+        </section>
+
+        <section aria-labelledby="forum-h" style="margin-top:28px">
+          <h2 id="forum-h" style="font-family:var(--font-heading);font-size:18px;margin:0 0 4px;font-weight:800">Bahan Forum Diskusi · Jumat, 20 Nov</h2>
+          <p style="font-size:12px;color:var(--color-neutral-700);margin:0 0 12px">Lima kendala pemulihan dari laporan, diurutkan dari yang paling menentukan.</p>
+          <div style="border:2px solid var(--color-divider)">
+            <div style="display:flex;gap:12px;padding:12px 14px;border-bottom:2px solid var(--color-divider)">
+              <span style="flex:0 0 64px;font-size:10.5px;font-weight:800;letter-spacing:.04em;color:var(--color-accent-700)">KRITIS</span>
+              <div style="font-size:13px;line-height:1.5"><span style="font-weight:700">R3P dan dasar pendanaan belum ditetapkan.</span> Dana Bersama dan hibah rehab-rekon merujuk R3P yang sudah ditetapkan; jalur pendanaan 2027 belum jelas.</div>
+            </div>
+            <div style="display:flex;gap:12px;padding:12px 14px;border-bottom:2px solid var(--color-divider)">
+              <span style="flex:0 0 64px;font-size:10.5px;font-weight:800;letter-spacing:.04em;color:var(--color-accent-700)">KRITIS</span>
+              <div style="font-size:13px;line-height:1.5"><span style="font-weight:700">Data yang terus bergeser.</span> Rumah rusak turun dari 98.986 laporan menjadi 51.733 terverifikasi; rusak berat dari 25.508 menjadi 5.964.</div>
+            </div>
+            <div style="display:flex;gap:12px;padding:12px 14px;border-bottom:2px solid var(--color-divider)">
+              <span style="flex:0 0 64px;font-size:10.5px;font-weight:800;letter-spacing:.04em;color:var(--color-accent-700)">KRITIS</span>
+              <div style="font-size:13px;line-height:1.5"><span style="font-weight:700">Botol leher SK BNBA.</span> Pencairan stimulan menunggu SK Bupati; verifikasi selesai 21 Okt, tetapi BNPB masih mendesak pemda menerbitkannya.</div>
+            </div>
+            <div style="display:flex;gap:12px;padding:12px 14px;border-bottom:2px solid var(--color-divider)">
+              <span style="flex:0 0 64px;font-size:10.5px;font-weight:800;letter-spacing:.04em;color:var(--color-accent-700)">KRITIS</span>
+              <div style="font-size:13px;line-height:1.5"><span style="font-weight:700">Huntara lambat, warga menanggung sendiri.</span> ±70% huntara di Manggarai Raya dibangun swadaya warga dan relawan (3 Nov).</div>
+            </div>
+            <div style="display:flex;gap:12px;padding:12px 14px">
+              <span style="flex:0 0 64px;font-size:10.5px;font-weight:800;letter-spacing:.04em;color:var(--color-neutral-800)">TINGGI</span>
+              <div style="font-size:13px;line-height:1.5"><span style="font-weight:700">Musim hujan November–Desember.</span> Risiko bagi warga yang masih di tenda dan memperlambat konstruksi; jatuh tepat di masa kunjungan.</div>
+            </div>
+          </div>
+        </section>
+
+        <section aria-labelledby="sas-h" style="margin-top:28px">
+          <h3 id="sas-h" style="font-family:var(--font-heading);font-size:13px;margin:0 0 4px;font-weight:800;letter-spacing:.02em">DAFTAR SASARAN</h3>
+          <p style="font-size:11px;color:var(--color-neutral-700);margin:0 0 10px">Klik nama sasaran untuk membuka profil lengkapnya. Profil sekolah belum tersedia.</p>
+          <ol class="kk-sas" style="margin:0;padding-left:20px;font-size:13px;line-height:1.9">
+            <li><a href="Sasaran-01-Bandara-Komodo.dc.html">Bandara Komodo</a></li>
+            <li><a href="Sasaran-02-Pelindo-Labuan-Bajo.dc.html">Pelabuhan Labuan Bajo / Pelindo</a></li>
+            <li><a href="Sasaran-03-Pemkab-Manggarai-Barat.dc.html">Pemkab Manggarai Barat</a></li>
+            <li><span style="color:var(--color-neutral-700)">SD Inpres Soknar</span></li>
+            <li><a href="Sasaran-05-ITDC-Golo-Mori.dc.html">ITDC Golo Mori</a></li>
+            <li><span style="color:var(--color-neutral-700)">SDK Kedindi, Reok</span> · <a href="Sasaran-06-Pemkab-Manggarai.dc.html">Pemkab Manggarai</a></li>
+            <li><a href="Sasaran-07-PLTP-Ulumbu.dc.html">PLTP Ulumbu</a></li>
+            <li><a href="Sasaran-08-BPOLBF.dc.html">Badan Pelaksana Otorita Labuan Bajo Flores</a></li>
+            <li><a href="Sasaran-09-TN-Komodo-Rinca.dc.html">Ekowisata TN Komodo, Pulau Rinca</a></li>
+          </ol>
+        </section>
+      </div>
+
+      <aside id="rundown" class="kk-side" aria-labelledby="rundown-h" style="border-left:2px solid var(--color-divider);padding-left:24px">
+        <h2 id="rundown-h" style="font-family:var(--font-heading);font-size:18px;margin:0 0 4px;font-weight:800">Rencana Kegiatan</h2>
+        <p style="font-size:11.5px;color:var(--color-neutral-700);margin:0 0 12px">Waktu dalam WITA kecuali disebut lain. Pakaian: bebas rapi.</p>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:24px">
+          <sc-for list="{{ days }}" as="d" hint-placeholder-count="5">
+            <div style="{{ d.boxStyle }}">
+              <button type="button" onClick="{{ d.toggle }}" aria-expanded="{{ d.active }}" style="display:flex;width:100%;justify-content:space-between;align-items:baseline;gap:10px;background:transparent;border:0;padding:10px 12px;cursor:pointer;text-align:left;min-height:44px">
+                <span style="font-weight:800;font-family:var(--font-heading);font-size:13.5px">{{ d.dow }}</span>
+                <span style="display:flex;align-items:baseline;gap:10px">
+                  <span style="font-size:11.5px;color:var(--color-neutral-700)">{{ d.dateLabel }}</span>
+                  <span aria-hidden="true" style="font-size:15px;font-weight:800;color:var(--color-accent-700);width:14px;text-align:center">{{ d.icon }}</span>
+                </span>
+              </button>
+              <sc-if value="{{ d.active }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:0 12px 12px">
+                  <div style="font-size:11px;color:var(--color-neutral-800);line-height:1.5;margin-bottom:8px">{{ d.summary }}</div>
+                  <div style="display:flex;flex-direction:column;gap:6px">
+                    <sc-for list="{{ d.items }}" as="it" hint-placeholder-count="5">
+                      <div style="{{ it.style }}">
+                        <span style="font-weight:700;white-space:nowrap">{{ it.time }}</span> — {{ it.text }}
+                        <sc-if value="{{ it.hasNote }}" hint-placeholder-val="{{ false }}">
+                          <div style="font-size:11px;color:var(--color-accent-700);margin-top:2px">{{ it.note }}</div>
+                        </sc-if>
+                      </div>
+                    </sc-for>
+                  </div>
+                  <sc-if value="{{ d.hasStay }}" hint-placeholder-val="{{ true }}">
+                    <div style="font-size:11px;margin-top:10px;padding-top:8px;border-top:2px solid var(--color-divider)"><span style="font-weight:800;letter-spacing:.04em">PENGINAPAN</span> · {{ d.stay }}</div>
+                  </sc-if>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+
+        <h3 style="font-family:var(--font-heading);font-size:13px;margin:0 0 10px;font-weight:800;letter-spacing:.02em">KALENDER NOVEMBER 2026</h3>
+        <div style="border:2px solid var(--color-divider);padding:12px">
+          <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;margin-bottom:6px">
+            <sc-for list="{{ weekdayLabels }}" as="w" hint-placeholder-count="7">
+              <div style="font-size:10px;text-align:center;color:var(--color-neutral-700);font-weight:700">{{ w }}</div>
+            </sc-for>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px">
+            <sc-for list="{{ calendarCells }}" as="c" hint-placeholder-count="35">
+              <div style="{{ c.style }}">{{ c.num }}</div>
+            </sc-for>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px 14px;font-size:10.5px;color:var(--color-neutral-800);margin-top:10px">
+            <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:10px;height:10px;background:#ec3013;display:inline-block"></span>Hari dipilih</span>
+            <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:10px;height:10px;background:#d7d3d3;display:inline-block"></span>Hari kunjungan</span>
+            <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:10px;height:10px;background:#f5860b;display:inline-block"></span>Hari ini</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <footer style="margin-top:36px;padding-top:14px;border-top:2px solid var(--color-divider);font-size:11px;line-height:1.55;color:var(--color-neutral-700)">
+      Sumber: laporan “88 Hari Setelah Gempa Flores M7,7: Rekonstruksi NTT” (diperbarui 12 Nov 2026; data BNPB, BMKG, BIG, BPS, Kementerian PU, Ombudsman RI, Pemprov NTT); Rundown Alt 2 KKDN Provinsi NTT; lokasi SDK Kedindi dari referensi data Kemendikdasmen (NPSN 50303261); profil PLTP Ulumbu dari Mongabay (2018). Angka berubah cepat; setiap angka mencantumkan tanggal datanya.
+    </footer>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":3200}}'>
+const TEMA = [
+  { id: "semua", label: "Semua sasaran" },
+  { id: "konektivitas", label: "Konektivitas & logistik" },
+  { id: "pemulihan", label: "Pemulihan & pendidikan" },
+  { id: "pariwisata", label: "Pariwisata & energi" }
+];
+
+const p = (lead, rest) => ({ lead, rest });
+
+const SASARAN = [
+  { no: 1, tema: "konektivitas", nama: "Bandara Komodo", meta: "Sen, 16 Nov · 14.00–16.00 · audiensi dan kunjungan lapangan bersama Kepala Bandara", dampak: "Mgr. Barat · berat", lvl: 2,
+    pointers: [
+      p("Pulih dalam 1–2 hari:", "Bandara Komodo dan Pelabuhan Marina kembali normal 1–2 hari setelah gempa, menjadi pintu masuk logistik dan wisatawan."),
+      p("Gempa susulan panjang:", "BMKG mencatat 13.156 gempa susulan per 7 September, terbesar M6,5.")
+    ],
+    tanya: "Bagaimana peran bandara dalam arus bantuan dan material rekonstruksi, dan apa prosedur kontinjensinya bila terjadi gempa atau peringatan tsunami saat operasi?" },
+  { no: 2, tema: "konektivitas", nama: "Pelabuhan Bajo / Pelindo III", meta: "Sen, 16 Nov · 16.30–17.30 · menghadirkan perwakilan daerah Ditjen Hubla Kemenhub", dampak: "Mgr. Barat · berat", lvl: 2,
+    pointers: [
+      p("Material dari luar pulau:", "rangka baja huntara harus didatangkan dari luar Flores; material yang langka menaikkan harga lokal."),
+      p("Pulau kecil bergantung laut:", "wilayah seperti Pulau Palue bergantung pada transportasi laut untuk bantuan dan material.")
+    ],
+    tanya: "Berapa kapasitas bongkar muat untuk kargo rekonstruksi, dan bisakah material huntara/huntap mendapat jalur prioritas, termasuk ke pulau-pulau kecil?" },
+  { no: 3, tema: "pemulihan", nama: "Pemkab Manggarai Barat", meta: "Sel, 17 Nov · 08.00–09.00 · Bupati, didampingi Kadis Perekonomian dan ESDM serta Kepala BPBD", dampak: "Mgr. Barat · berat", lvl: 2,
+    pointers: [
+      p("Angka rusak berat bergeser:", "357 unit pada ekspose 9 September, lalu 488 unit pada rilis Pemkab 25 September. Total 6.657 rumah terverifikasi (488 RB, 1.589 RS, 4.580 RR)."),
+      p("Pilihan hunian:", "248 KK memilih Dana Tunggu Hunian (Rp600 ribu/bulan), 240 KK memilih huntara."),
+      p("Uji publik data:", "Pemkab membuka data kerusakan untuk uji publik; Ombudsman menemukan pengungsi bertahan di penampungan seadanya.")
+    ],
+    tanya: "Sampai mana penerbitan SK BNBA dan pencairan stimulan, bagaimana sanggahan warga diproses, dan apa status R3P kabupaten?" },
+  { no: 4, tema: "pemulihan", nama: "SD Inpres Soknar", meta: "Sel, 17 Nov · 09.40–10.30 · penyerahan 44 meja belajar dan 88 kursi, peninjauan pembagian MBG", dampak: "Mgr. Barat · berat", lvl: 2,
+    pointers: [
+      p("Sekolah ikut terdampak:", "BPBD NTT mencatat 2.633 sarana pendidikan rusak di wilayah terdampak."),
+      p("Akses belajar terganggu:", "Ombudsman RI menyoroti terganggunya akses pendidikan pascagempa.")
+    ],
+    tanya: "Apakah ruang kelas masih aman dipakai, perlukah ruang kelas sementara, dan apakah MBG tetap berjalan di sekolah terdampak?" },
+  { no: 5, tema: "pariwisata", nama: "ITDC Golo Mori", meta: "Sel, 17 Nov · 10.45–12.00 · audiensi bersama Pimpinan ITDC, dilanjutkan ishoma", dampak: "Mgr. Barat · berat", lvl: 2,
+    pointers: [
+      p("Pariwisata premium cepat pulih:", "Bupati Manggarai Barat menyebut kunjungan wisatawan relatif sama dengan sebelum gempa."),
+      p("Kerusakan tetap ada:", "Hotel Jayakarta Labuan Bajo rusak; dinding rumah sederhana roboh di Manggarai Barat.")
+    ],
+    tanya: "Adakah dampak gempa pada rencana investasi dan okupansi kawasan, dan apa peran ITDC dalam pemasaran ulang “Flores aman”?" },
+  { no: 6, tema: "pemulihan", nama: "SDK Kedindi, Kecamatan Reok", meta: "Rab, 18 Nov · 09.00–10.30 · bantuan bahan bangunan, didampingi Bupati dan Ka BPBD Manggarai; peninjauan MBG", dampak: "Manggarai · sangat berat", lvl: 3,
+    pointers: [
+      p("Pesisir dengan tsunami tertinggi:", "survei BMKG mencatat run-up hingga 2,92 m di Salama, Reok, dengan genangan 20–153 m; stasiun pasut Reo mencatat 1,48 m."),
+      p("Gelombang tiba sangat cepat:", "di pantai utara Flores tsunami tiba kurang dari lima menit setelah gempa, sehingga evakuasi mandiri menjadi kunci."),
+      p("Manggarai paling berat:", "34.622 rumah terdampak (Pemkab, Okt); huntara 109 dari 385 unit tahap 1 dalam proses (28 Sep).")
+    ],
+    tanya: "Apakah sekolah punya jalur dan latihan evakuasi tsunami, dan apakah bahan bangunan bantuan dipakai sesuai standar tahan gempa (SNI 1726:2019)?" },
+  { no: 7, tema: "pariwisata", nama: "PLTP Ulumbu (Ruteng)", meta: "Rab, 18 Nov · 14.30–15.30 · Desa Wewo, Kec. Satar Mese · audiensi dan kunjungan lapangan", dampak: "Manggarai · sangat berat", lvl: 3,
+    pointers: [
+      p("Pemasok sistem Ruteng:", "PLTP 4×2,5 MW ini memasok sistem Ruteng yang melayani Manggarai, Manggarai Barat, dan Manggarai Timur (Mongabay, 2018), tiga kabupaten terdampak."),
+      p("Data dampak belum ada:", "laporan 88 hari tidak memuat kondisi PLTP Ulumbu pascagempa.")
+    ],
+    tanya: "Bagaimana status operasi dan keandalan pasokan listrik sejak gempa, dan berapa kebutuhan daya untuk huntara serta rekonstruksi?" },
+  { no: 8, tema: "pariwisata", nama: "Badan Pelaksana Otorita Labuan Bajo Flores", meta: "Kam, 19 Nov · 08.05–09.00 · audiensi dengan Pimpinan BPOLBF", dampak: "Mgr. Barat · berat", lvl: 2,
+    pointers: [
+      p("Camino de Flores:", "Kemenpar dan BPOLBF meluncurkan Camino de Flores (23–27 Okt) untuk menyebarkan wisatawan ke daratan Flores."),
+      p("Destinasi daratan tertinggal:", "destinasi di luar Labuan Bajo masih perlu perbaikan.")
+    ],
+    tanya: "Apa hasil Camino de Flores, adakah rencana etape barat dan timur, dan insentif apa untuk desa wisata terdampak?" },
+  { no: 9, tema: "pariwisata", nama: "Ekowisata TN Komodo, Pulau Rinca", meta: "Kam, 19 Nov · 10.00–15.00 · peninjauan dan ishoma", dampak: "Mgr. Barat · berat", lvl: 2,
+    pointers: [
+      p("Ekonomi NTT melambat:", "triwulan III-2026 tumbuh 4,71% (yoy), di bawah nasional 5,47%; tujuh kabupaten terdampak menyumbang sekitar 30–35% ekonomi NTT."),
+      p("Pariwisata sebagai penggerak:", "Labuan Bajo pulih paling cepat; tantangannya menyalurkan manfaat ke daratan Flores yang terdampak.")
+    ],
+    tanya: "Bagaimana pendapatan ekowisata TN Komodo bisa ikut menopang pemulihan ekonomi warga di kabupaten terdampak?" }
+];
+
+const k = (time, text, note) => ({ kind: "key", time, text, note: note || "" });
+const t = (time, text, note) => ({ kind: "trip", time, text, note: note || "" });
+
+const DAYS = [
+  { dow: "Senin", dateLabel: "16 Nov", date: 16, summary: "Zona waktu WITA (berangkat dari Jakarta dalam WIB).", stay: "RA Signature Komodo, Labuan Bajo", items: [
+    t("09.50 WIB – 13.15 WITA", "Tim DPN take off dari Bandara Soekarno-Hatta menuju Bandara Komodo Labuan Bajo"),
+    t("13.15–14.00", "Perjalanan ke Ruang VIP Bandara Komodo dan ishoma"),
+    k("14.00–16.00", "Audiensi dan kunjungan lapangan bersama Kepala Bandara Komodo"),
+    t("16.00–16.30", "Perjalanan menuju Pelabuhan Bajo/Pelindo III"),
+    k("16.30–17.30", "Audiensi dan kunjungan lapangan di Pelindo III", "Menghadirkan perwakilan daerah Ditjen Hubla Kemenhub"),
+    t("17.30", "Perjalanan menuju penginapan")
+  ]},
+  { dow: "Selasa", dateLabel: "17 Nov", date: 17, summary: "Zona waktu WITA.", stay: "Spring Hill Hotel", items: [
+    t("06.30–07.45", "Sarapan"),
+    t("07.45–08.00", "Perjalanan menuju Kantor Bupati Manggarai Barat"),
+    k("08.00–09.00", "Audiensi bersama Bupati Manggarai Barat", "Didampingi Kadis Perekonomian dan ESDM serta Kepala BPBD Manggarai Barat"),
+    t("09.00–09.40", "Perjalanan menuju SD Inpres Soknar"),
+    k("09.40–10.30", "Penyerahan bantuan ke SD Inpres Soknar sekaligus peninjauan pembagian MBG", "Bantuan: 44 meja belajar dan 88 kursi"),
+    t("10.30–10.45", "Perjalanan menuju ITDC Golo Mori"),
+    k("10.45–12.00", "Audiensi bersama Pimpinan ITDC Golo Mori"),
+    t("12.00–14.00", "Ishoma di ITDC Golo Mori"),
+    t("14.00–18.00", "Perjalanan menuju penginapan dan check in")
+  ]},
+  { dow: "Rabu", dateLabel: "18 Nov", date: 18, summary: "Zona waktu WITA.", stay: "RA Signature Komodo, Labuan Bajo", items: [
+    t("06.30–07.00", "Sarapan dan check out"),
+    t("07.00–09.00", "Perjalanan menuju SDK Kedindi, Kab. Manggarai"),
+    k("09.00–10.30", "Penyerahan bantuan ke SDK Kedindi, didampingi Bupati Manggarai dan Ka BPBD Manggarai, sekaligus peninjauan pembagian MBG", "Bantuan bahan bangunan · dihadiri perwakilan SMP Negeri 1 Boawae Satap"),
+    t("10.30–12.30", "Perjalanan menuju RM Parikoro (Ruteng)"),
+    t("12.30–13.30", "Ishoma"),
+    t("13.30–14.30", "Perjalanan menuju PLTP Ruteng (Ulumbu)"),
+    k("14.30–15.30", "Audiensi dan kunjungan lapangan di PLTP Ulumbu"),
+    t("15.30–19.00", "Perjalanan ke Labuan Bajo, check in, makan malam")
+  ]},
+  { dow: "Kamis", dateLabel: "19 Nov", date: 19, summary: "Zona waktu WITA.", stay: "", items: [
+    t("06.30–08.00", "Sarapan"),
+    t("08.00–08.05", "Perjalanan menuju Badan Pelaksana Otorita Labuan Bajo Flores"),
+    k("08.05–09.00", "Audiensi dengan Pimpinan Badan Pelaksana Otorita Labuan Bajo Flores"),
+    t("09.00–10.00", "Perjalanan menuju Ekowisata Taman Nasional Komodo"),
+    k("10.00–15.00", "Peninjauan Ekowisata TN Komodo di Pulau Rinca dan ishoma"),
+    t("15.00–16.00", "Perjalanan menuju penginapan")
+  ]},
+  { dow: "Jumat", dateLabel: "20 Nov", date: 20, summary: "Zona waktu WITA (tiba di Jakarta dalam WIB).", stay: "", items: [
+    t("05.30–07.00", "Olahraga bersama"),
+    t("07.00–08.00", "Sarapan dan persiapan Forum Diskusi"),
+    k("08.00–10.30", "Pelaksanaan Forum Diskusi", "Meeting Room Rinca, Hotel RA Signature Komodo Labuan Bajo"),
+    t("10.30–10.45", "Perjalanan menuju Bandara Komodo"),
+    t("10.45–13.00", "Bagasi dan check in pesawat"),
+    t("13.55 WITA – 15.15 WIB", "Tim DPN take off dari Bandara Komodo menuju Bandara Soekarno-Hatta")
+  ]}
+];
+
+const LOKASI = [
+  { no: 1, nama: "Bandara Komodo", lat: -8.4866, lon: 119.8891, waktu: "Sen, 16 Nov · 14.00–16.00", ket: "Labuan Bajo" },
+  { no: 2, nama: "Pelabuhan Bajo / Pelindo III", lat: -8.4968, lon: 119.8778, waktu: "Sen, 16 Nov · 16.30–17.30", ket: "Labuan Bajo" },
+  { no: 3, nama: "Kantor Bupati Manggarai Barat", lat: -8.5020, lon: 119.8905, waktu: "Sel, 17 Nov · 08.00–09.00", ket: "Labuan Bajo · posisi indikatif" },
+  { no: 4, nama: "SD Inpres Soknar", lat: -8.6150, lon: 119.8350, waktu: "Sel, 17 Nov · 09.40–10.30", ket: "Kec. Komodo · posisi indikatif" },
+  { no: 5, nama: "ITDC Golo Mori", lat: -8.6550, lon: 119.8400, waktu: "Sel, 17 Nov · 10.45–14.00", ket: "Desa Golo Mori · posisi indikatif" },
+  { no: 6, nama: "SDK Kedindi", lat: -8.2900, lon: 120.4550, waktu: "Rab, 18 Nov · 09.00–10.30", ket: "Wangkung, Kec. Reok, Manggarai · posisi indikatif" },
+  { no: 7, nama: "PLTP Ulumbu", lat: -8.6900, lon: 120.3900, waktu: "Rab, 18 Nov · 14.30–15.30", ket: "Desa Wewo, Kec. Satar Mese · posisi indikatif" },
+  { no: 8, nama: "Badan Pelaksana Otorita Labuan Bajo Flores", lat: -8.4925, lon: 119.8840, waktu: "Kam, 19 Nov · 08.05–09.00", ket: "Labuan Bajo · posisi indikatif" },
+  { no: 9, nama: "Ekowisata TN Komodo, Pulau Rinca", lat: -8.6560, lon: 119.7170, waktu: "Kam, 19 Nov · 10.00–15.00", ket: "Loh Buaya · posisi indikatif" }
+];
+
+const PROFIL = {
+  1: ["Sasaran-01-Bandara-Komodo.dc.html", "Buka profil lengkap →"],
+  2: ["Sasaran-02-Pelindo-Labuan-Bajo.dc.html", "Buka profil lengkap →"],
+  3: ["Sasaran-03-Pemkab-Manggarai-Barat.dc.html", "Buka profil lengkap →"],
+  5: ["Sasaran-05-ITDC-Golo-Mori.dc.html", "Buka profil lengkap →"],
+  6: ["Sasaran-06-Pemkab-Manggarai.dc.html", "Buka profil Pemkab Manggarai →"],
+  7: ["Sasaran-07-PLTP-Ulumbu.dc.html", "Buka profil lengkap →"],
+  8: ["Sasaran-08-BPOLBF.dc.html", "Buka profil lengkap →"],
+  9: ["Sasaran-09-TN-Komodo-Rinca.dc.html", "Buka profil lengkap →"]
+};
+
+const DAY_MS = 86400000;
+const START = Date.UTC(2026, 10, 15, 16, 0, 0); // 16 Nov 2026 00.00 WITA
+const END = Date.UTC(2026, 10, 20, 5, 55, 0); // 20 Nov 2026 13.55 WITA, take off pulang
+
+function witaNow() {
+  const now = Date.now();
+  const d = new Date(now + 8 * 3600000);
+  return { ms: now, y: d.getUTCFullYear(), m: d.getUTCMonth(), day: d.getUTCDate() };
+}
+
+function initialState() {
+  const w = witaNow();
+  const during = w.y === 2026 && w.m === 10 && w.day >= 16 && w.day <= 20;
+  return { tema: "semua", activeDay: during ? w.day - 16 : 0, kabOpen: {} };
+}
+
+class Component extends DCLogic {
+  state = initialState();
+
+  componentDidMount() {
+    // Hitung ulang tiap menit: H-n berganti otomatis saat lewat tengah malam WITA
+    this._tick = setInterval(() => this.forceUpdate(), 60000);
+  }
+
+  componentWillUnmount() {
+    clearInterval(this._tick);
+    clearTimeout(this._mapWait);
+    if (this._map) { this._map.remove(); this._map = null; }
+  }
+
+  setMapEl(el) {
+    this._mapEl = el;
+    if (el) this.initMap();
+  }
+
+  initMap() {
+    if (this._map || !this._mapEl) return;
+    const L = window.L;
+    if (!L) { clearTimeout(this._mapWait); this._mapWait = setTimeout(() => this.initMap(), 200); return; }
+    const map = L.map(this._mapEl, { scrollWheelZoom: false, zoomControl: true, dragging: !L.Browser.mobile, tap: false });
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
+    }).addTo(map);
+    const pts = [];
+    LOKASI.forEach((p) => {
+      const icon = L.divIcon({ className: "kk-pin", html: String(p.no), iconSize: [24, 24], iconAnchor: [12, 12], popupAnchor: [0, -12] });
+      const m = L.marker([p.lat, p.lon], { icon, title: p.nama, keyboard: true }).addTo(map);
+      m.bindPopup("<strong>" + p.no + ". " + p.nama + "</strong><br>" + p.waktu + "<br><span style=\"color:#605d5d\">" + p.ket + "</span>");
+      pts.push([p.lat, p.lon]);
+    });
+    map.fitBounds(pts, { padding: [28, 28] });
+    map.on("click focus", () => map.scrollWheelZoom.enable());
+    map.on("mouseout blur", () => map.scrollWheelZoom.disable());
+    this._map = map;
+    setTimeout(() => map.invalidateSize(), 300);
+  }
+
+  renderVals() {
+    const w = witaNow();
+    const diffDays = Math.ceil((START - w.ms) / DAY_MS);
+    let countdownValue, countdownLabel;
+    if (w.ms >= END) { countdownValue = "Selesai"; countdownLabel = "KUNJUNGAN 16–20 NOV TELAH BERAKHIR"; }
+    else if (diffDays > 0) { countdownValue = "H-" + diffDays; countdownLabel = "MENUJU KUNJUNGAN"; }
+    else { countdownValue = "Hari " + (1 - diffDays) + "/5"; countdownLabel = "KUNJUNGAN BERLANGSUNG"; }
+
+    const ORD = ["Pertama", "Kedua", "Ketiga", "Keempat", "Kelima"];
+    let dayBannerTitle, dayBannerSub;
+    if (w.ms >= END) { dayBannerTitle = "KEGIATAN SELESAI"; dayBannerSub = "KKDN NTT 16–20 November 2026 telah berakhir"; }
+    else if (diffDays > 0) { dayBannerTitle = "H-" + diffDays; dayBannerSub = "menuju Hari Pertama · Senin, 16 November 2026"; }
+    else {
+      const idx = Math.min(4, -diffDays);
+      const dd = DAYS[idx];
+      dayBannerTitle = "HARI " + ORD[idx].toUpperCase();
+      dayBannerSub = dd.dow + ", " + dd.date + " November 2026";
+    }
+
+    const tabBase = "text-align:left;padding:10px 14px;min-height:44px;border:2px solid var(--color-text);font-family:var(--font-heading);font-weight:800;font-size:12.5px;cursor:pointer;";
+    const tabs = TEMA.map((tm) => {
+      const on = this.state.tema === tm.id;
+      const n = tm.id === "semua" ? SASARAN.length : SASARAN.filter((s) => s.tema === tm.id).length;
+      return {
+        label: tm.label, count: n + " SASARAN", pressed: on,
+        style: tabBase + (on ? "background:var(--color-text);color:var(--color-bg)" : "background:var(--color-bg);color:var(--color-text)"),
+        pick: () => this.setState({ tema: tm.id })
+      };
+    });
+
+    const activeSasaran = SASARAN
+      .filter((s) => this.state.tema === "semua" || s.tema === this.state.tema)
+      .map((s) => ({
+        ...s,
+        profil: PROFIL[s.no] ? PROFIL[s.no][0] : "",
+        profilLabel: PROFIL[s.no] ? PROFIL[s.no][1] : "",
+        hasProfil: !!PROFIL[s.no],
+        open: !!(this.state.sasOpen || {})[s.no],
+        icon: (this.state.sasOpen || {})[s.no] ? "−" : "+",
+        toggle: () => this.setState((st) => ({ sasOpen: { ...(st.sasOpen || {}), [s.no]: !(st.sasOpen || {})[s.no] } })),
+        tagStyle: "flex:0 0 auto;font-size:10px;font-weight:800;letter-spacing:.04em;padding:3px 7px;white-space:nowrap;" +
+          (s.lvl === 3 ? "background:#dd2b0f;color:#ffffff" : "background:#ff9783;color:#201e1d")
+      }));
+
+    const days = DAYS.map((d, i) => {
+      const active = this.state.activeDay === i;
+      return {
+        dow: "Hari " + ["Pertama", "Kedua", "Ketiga", "Keempat", "Kelima"][i] + " · " + d.dow, dateLabel: d.dateLabel, summary: d.summary, stay: d.stay, hasStay: !!d.stay,
+        active, icon: active ? "−" : "+",
+        toggle: () => this.setState((s) => ({ activeDay: s.activeDay === i ? null : i })),
+        boxStyle: "border:2px solid " + (active ? "var(--color-text)" : "var(--color-divider)") + ";background:" + (active ? "var(--color-neutral-100)" : "transparent"),
+        items: d.items.map((it) => ({
+          time: it.time, text: it.text, note: it.note, hasNote: !!it.note,
+          style: it.kind === "key"
+            ? "font-size:12.5px;line-height:1.45;padding-left:10px;border-left:3px solid var(--color-accent);font-weight:600"
+            : "font-size:12px;line-height:1.45;padding-left:11px;border-left:2px solid var(--color-neutral-300);color:var(--color-neutral-800)"
+        }))
+      };
+    });
+
+    const firstDow = new Date(Date.UTC(2026, 10, 1)).getUTCDay();
+    const cells = [];
+    for (let i = 0; i < firstDow; i++) cells.push(null);
+    for (let d = 1; d <= 30; d++) cells.push(d);
+    while (cells.length % 7 !== 0) cells.push(null);
+    const today = (w.y === 2026 && w.m === 10) ? w.day : null;
+    const calendarCells = cells.map((num) => {
+      const isEvent = num !== null && num >= 16 && num <= 20;
+      const isSel = isEvent && (num - 16) === this.state.activeDay;
+      const isToday = num !== null && num === today;
+      let bg = "transparent", color = "var(--color-text)";
+      if (isEvent) bg = "var(--color-neutral-300)";
+      if (isSel) { bg = "#ec3013"; color = "#ffffff"; }
+      if (isToday && !isSel) { bg = "#f5860b"; color = "#201e1d"; }
+      return {
+        num: num || "",
+        style: "aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:11px;background:" + bg + ";color:" + color + ";font-weight:" + (isEvent || isToday ? "800" : "400")
+      };
+    });
+
+    const kabOpen = this.state.kabOpen || {};
+    const kabItem = (id) => ({
+      open: !!kabOpen[id], icon: kabOpen[id] ? "−" : "+",
+      toggle: () => this.setState((s) => ({ kabOpen: { ...(s.kabOpen || {}), [id]: !(s.kabOpen || {})[id] } }))
+    });
+    const kab = { mabar: kabItem("mabar"), mgr: kabItem("mgr"), ngk: kabItem("ngk") };
+
+    if (!this._mapRef) this._mapRef = (el) => this.setMapEl(el);
+
+    return {
+      mapRef: this._mapRef, kab, dayBannerTitle, dayBannerSub, countdownValue, countdownLabel, tabs, activeSasaran, days, calendarCells,
+      weekdayLabels: ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"]
+    };
+  }
+}
+</script>
+</body>
+</html>
